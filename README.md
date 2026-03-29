@@ -1,82 +1,157 @@
-# API Gateway — Spring Boot + JWT + Rate Limiting
+# API Gateway System
 
-A production-structured API Gateway with JWT authentication, dual rate limiting algorithms, MongoDB request logging, and an admin dashboard.
+A production-grade, polyglot API Gateway built with Java, C++, Python, and React. Handles JWT authentication, per-user rate limiting, request logging, traffic analytics, and ML-based anomaly detection — all visualised in a real-time admin dashboard.
+
+---
+
+## Live Demo
+
+> Dashboard: [your-vercel-url.vercel.app](https://your-vercel-url.vercel.app)  
+> Login: `admin` / `admin123`
 
 ---
 
 ## Architecture
 
 ```
-Client
-  │
-  ▼
-┌─────────────────────────────────────────┐
-│         API Gateway  :8080              │
-│                                         │
-│  JwtAuthenticationFilter                │
-│    ├── JWT validation                   │
-│    ├── Rate limiting (per user)         │
-│    │     ├── Token Bucket               │
-│    │     └── Leaky Bucket              │
-│    └── Request logging → MongoDB        │
-│                                         │
-│  Controllers                            │
-│    ├── /auth/**    → AuthController     │
-│    ├── /api/**     → GatewayController  │
-│    └── /admin/**   → AdminController    │
-└──────────┬──────────────────────────────┘
-           │  proxy
-    ┌──────┼──────────┐
-    ▼      ▼          ▼
- :8081   :8082      :8083
- Users  Orders    Products
+                        ┌─────────────────────────────────┐
+                        │       API Gateway  :8080         │
+Client ──── JWT ───────▶│                                  │
+                        │  ┌─────────────────────────┐    │
+                        │  │  JwtAuthenticationFilter │    │
+                        │  │  ├── Validate JWT token  │    │
+                        │  │  ├── Token Bucket        │    │
+                        │  │  ├── Leaky Bucket        │    │
+                        │  │  └── Log to MongoDB      │    │
+                        │  └─────────────────────────┘    │
+                        └──────────┬──────────────────────┘
+                                   │ proxy
+                     ┌─────────────┼─────────────┐
+                     ▼             ▼              ▼
+               :8081 Users   :8082 Orders   :8083 Products
+
+                     ┌─────────────────────────────────┐
+                     │   C++ Rate Limiter  :9090        │
+                     │   High-speed Token/Leaky Bucket  │
+                     └─────────────────────────────────┘
+
+                     ┌─────────────────────────────────┐
+                     │   Python Analytics  :8000        │
+                     │   Pandas + Isolation Forest      │
+                     └─────────────────────────────────┘
+
+                     ┌─────────────────────────────────┐
+                     │   React Dashboard   :3000        │
+                     │   Live metrics + anomaly feed    │
+                     └─────────────────────────────────┘
 ```
 
 ---
 
-## Prerequisites
+## Features
+
+- **JWT Authentication** — Stateless login with signed tokens, BCrypt password hashing
+- **Dual Rate Limiting** — Token Bucket (allows bursting) and Leaky Bucket (smooth rate) algorithms, configurable per user
+- **Request Proxying** — Routes `/api/users`, `/api/orders`, `/api/products` to downstream services
+- **MongoDB Logging** — Every request logged with status, latency, user, and rate-limit metadata
+- **Admin API** — Paginated logs, per-user rate limit overrides, real-time bucket status
+- **Python Analytics** — Traffic summaries, time-series bucketing, per-service and per-user breakdowns
+- **ML Anomaly Detection** — Isolation Forest on user behaviour + Z-score spike detection on volume, errors, and latency
+- **React Dashboard** — Live traffic chart, anomaly feed, service health bars, rate limit bucket visualiser, logs drawer
+
+---
+
+## Tech Stack
+
+| Layer | Technology | Purpose |
+|---|---|---|
+| API Gateway | Java 17, Spring Boot 3.3 | Core routing, JWT auth, rate limiting |
+| Rate Limiter | C++20, cpp-httplib | High-speed native rate limiting REST service |
+| Analytics | Python 3, FastAPI, Pandas | Traffic analytics and anomaly detection |
+| ML | scikit-learn (Isolation Forest) | Unsupervised anomaly detection on user patterns |
+| Database | MongoDB 8.x | Request logs and user storage |
+| Dashboard | React 18, Vite, Chart.js | Real-time admin UI |
+
+---
+
+## Project Structure
+
+```
+api-gateway-system/
+├── api-gateway/                  # Java Spring Boot gateway
+│   ├── src/main/java/com/gateway/
+│   │   ├── controller/           # Auth, Gateway, Admin controllers
+│   │   ├── filter/               # JWT authentication filter
+│   │   ├── model/                # User, RequestLog models
+│   │   ├── ratelimit/            # TokenBucket, LeakyBucket algorithms
+│   │   ├── repository/           # MongoDB repositories
+│   │   ├── service/              # RateLimiterService, UserDetailsService
+│   │   └── config/               # Security, DataSeeder, GlobalExceptionHandler
+│   ├── dummy_user_service.py     # Lightweight dummy service :8081
+│   ├── dummy_order_service.py    # Lightweight dummy service :8082
+│   └── dummy_product_service.py  # Lightweight dummy service :8083
+│
+├── cpp-rate-limiter/             # Native C++ rate limiter
+│   ├── include/                  # TokenBucket, LeakyBucket, Manager headers
+│   ├── src/                      # Implementations + REST server
+│   └── tests/                    # Thread-safety and correctness tests
+│
+├── python-analytics/             # FastAPI analytics service
+│   ├── src/
+│   │   ├── main.py               # FastAPI server + scheduler
+│   │   ├── analytics.py          # Pandas aggregations
+│   │   ├── anomaly_detector.py   # Isolation Forest + Z-score detection
+│   │   └── db.py                 # MongoDB connector
+│   └── tests/                    # Unit tests with synthetic data
+│
+└── admin-dashboard/              # React + Vite admin UI
+    └── src/
+        ├── components/           # Dashboard, MetricsRow, TrafficChart, etc.
+        └── api.js                # Gateway + analytics API client
+```
+
+---
+
+## Getting Started
+
+### Prerequisites
 
 - Java 17+
 - Maven 3.8+
-- MongoDB running on `localhost:27017`
+- Python 3.9+ (Anaconda recommended)
+- Node.js 18+ and npm
+- MongoDB 8.x
+- CMake 3.16+ and GCC/MinGW (for C++ service)
 
----
+### Run locally
 
-## Quick Start
+Open 7 terminals and run one command per terminal in this order:
 
 ```bash
-# 1. Start MongoDB
-mongod --dbpath /data/db
+# Terminal 1 — MongoDB
+mongod --dbpath C:\data\db
 
-# 2. Build
-mvn clean package -DskipTests
+# Terminal 2 — API Gateway
+cd api-gateway
+java -jar target/api-gateway-1.0.0.jar --spring.data.mongodb.uri=mongodb://127.0.0.1:27017/api_gateway
 
-# 3. Run gateway (port 8080)
-java -jar target/api-gateway-1.0.0.jar
+# Terminal 3 — User Service
+cd api-gateway && python dummy_user_service.py
 
-# 4. Run dummy services (separate terminals)
-java -jar target/api-gateway-1.0.0.jar \
-  --spring.main.sources=com.gateway.dummy.DummyUserService \
-  --server.port=8081
+# Terminal 4 — Order Service
+cd api-gateway && python dummy_order_service.py
 
-java -jar target/api-gateway-1.0.0.jar \
-  --spring.main.sources=com.gateway.dummy.DummyOrderService \
-  --server.port=8082
+# Terminal 5 — Product Service
+cd api-gateway && python dummy_product_service.py
 
-java -jar target/api-gateway-1.0.0.jar \
-  --spring.main.sources=com.gateway.dummy.DummyProductService \
-  --server.port=8083
+# Terminal 6 — Python Analytics
+cd python-analytics && python src/main.py
+
+# Terminal 7 — Admin Dashboard
+cd admin-dashboard && npm run dev
 ```
 
----
-
-## Seeded Users
-
-| Username | Password     | Role  | Algorithm    | Capacity | Rate   |
-|----------|-------------|-------|--------------|----------|--------|
-| admin    | admin123    | ADMIN | Token Bucket | 1000     | 100/s  |
-| alice    | password123 | USER  | Token Bucket | 10       | 5/s    |
-| bob      | password123 | USER  | Leaky Bucket | 8        | 2/s    |
+Open `http://localhost:3000` and log in with `admin / admin123`.
 
 ---
 
@@ -84,94 +159,45 @@ java -jar target/api-gateway-1.0.0.jar \
 
 ### Authentication
 
-**Login**
 ```bash
-curl -X POST http://localhost:8080/auth/login \
-  -H "Content-Type: application/json" \
-  -d '{"username":"alice","password":"password123"}'
-```
-Response:
-```json
-{
-  "token": "eyJhbGci...",
-  "username": "alice",
-  "roles": [{"authority": "ROLE_USER"}]
-}
-```
+# Login
+POST /auth/login
+{ "username": "admin", "password": "admin123" }
+→ { "token": "eyJ...", "username": "admin", "roles": [...] }
 
-**Register**
-```bash
-curl -X POST http://localhost:8080/auth/register \
-  -H "Content-Type: application/json" \
-  -d '{"username":"dave","password":"pass123","email":"dave@test.com"}'
+# Register
+POST /auth/register
+{ "username": "dave", "password": "pass123", "email": "dave@test.com" }
 ```
-
----
 
 ### Gateway Routes (JWT required)
 
 ```bash
-TOKEN="eyJhbGci..."
-
-# Users
-curl http://localhost:8080/api/users \
-  -H "Authorization: Bearer $TOKEN"
-
-curl http://localhost:8080/api/users/u1 \
-  -H "Authorization: Bearer $TOKEN"
-
-# Orders
-curl http://localhost:8080/api/orders \
-  -H "Authorization: Bearer $TOKEN"
-
-# Products
-curl http://localhost:8080/api/products \
-  -H "Authorization: Bearer $TOKEN"
+GET  /api/users             # List all users
+GET  /api/users/:id         # Get user by ID
+GET  /api/orders            # List all orders
+GET  /api/products          # List all products
 ```
-
-Rate limit headers are returned on every response:
-```
-X-RateLimit-Limit: 10
-X-RateLimit-Remaining: 7
-```
-
-When rate limited, you get HTTP `429`:
-```json
-{"error": "Rate limit exceeded", "status": 429}
-```
-
----
 
 ### Admin Endpoints (ADMIN role required)
 
 ```bash
-ADMIN_TOKEN="eyJhbGci..."   # login as admin
+GET    /admin/dashboard                        # 24h traffic summary
+GET    /admin/logs?page=0&size=50             # Paginated request logs
+GET    /admin/users                            # All users
+PATCH  /admin/users/:username/rate-limit       # Update rate limit config
+GET    /admin/rate-limit/status/:userId        # Live bucket status
+```
 
-# Dashboard summary (last 24h)
-curl http://localhost:8080/admin/dashboard \
-  -H "Authorization: Bearer $ADMIN_TOKEN"
+### Analytics Endpoints
 
-# Paginated logs
-curl "http://localhost:8080/admin/logs?page=0&size=20" \
-  -H "Authorization: Bearer $ADMIN_TOKEN"
-
-# Logs by user
-curl "http://localhost:8080/admin/logs?username=alice" \
-  -H "Authorization: Bearer $ADMIN_TOKEN"
-
-# All users
-curl http://localhost:8080/admin/users \
-  -H "Authorization: Bearer $ADMIN_TOKEN"
-
-# Update rate limit for a user
-curl -X PATCH http://localhost:8080/admin/users/alice/rate-limit \
-  -H "Authorization: Bearer $ADMIN_TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{"capacity": 20, "refillRate": 10, "algorithm": "LEAKY_BUCKET"}'
-
-# Real-time bucket status
-curl http://localhost:8080/admin/rate-limit/status/{userId} \
-  -H "Authorization: Bearer $ADMIN_TOKEN"
+```bash
+GET /summary?minutes=60          # Traffic summary
+GET /timeseries?minutes=60       # Time-bucketed request counts
+GET /services?minutes=60         # Per-service breakdown
+GET /users?minutes=60            # Top users by volume
+GET /anomalies?minutes=60        # Run anomaly detection
+GET /anomalies/latest            # Cached latest report
 ```
 
 ---
@@ -179,59 +205,45 @@ curl http://localhost:8080/admin/rate-limit/status/{userId} \
 ## Rate Limiting Algorithms
 
 ### Token Bucket
-- Starts full at `capacity` tokens
-- Refills at `refillRatePerSecond` tokens/second
-- **Allows bursting** up to `capacity` requests
-- Each request consumes 1 token; rejected if empty
+Tokens accumulate up to `capacity` at `refill_rate` per second. Each request consumes one token. Empty bucket → 429. Allows short bursts up to capacity.
 
 ### Leaky Bucket
-- Bucket fills with incoming requests
-- Drains at `leakRatePerSecond` per second
-- **No bursting** — excess requests dropped immediately
-- Smoother, more predictable output rate
+Requests fill a bucket that drains at `leak_rate` per second. Full bucket → 429. Enforces a smooth, constant output rate with no bursting.
+
+Both algorithms are implemented in Java (in-process) and C++ (standalone REST service at `:9090`).
 
 ---
 
-## Project Structure
+## Anomaly Detection
 
-```
-src/main/java/com/gateway/
-├── ApiGatewayApplication.java
-├── config/
-│   ├── AppConfig.java
-│   ├── DataSeeder.java
-│   ├── GlobalExceptionHandler.java
-│   └── SecurityConfig.java
-├── controller/
-│   ├── AdminController.java
-│   ├── AuthController.java
-│   └── GatewayController.java
-├── dummy/
-│   ├── DummyUserService.java
-│   ├── DummyOrderService.java
-│   └── DummyProductService.java
-├── filter/
-│   └── JwtAuthenticationFilter.java
-├── model/
-│   ├── RequestLog.java
-│   └── User.java
-├── ratelimit/
-│   ├── LeakyBucket.java
-│   └── TokenBucket.java
-├── repository/
-│   ├── RequestLogRepository.java
-│   └── UserRepository.java
-├── service/
-│   ├── RateLimiterService.java
-│   └── UserDetailsServiceImpl.java
-└── util/
-    └── JwtUtil.java
-```
+The Python analytics service runs 5 detectors on every `/anomalies` request:
+
+| Detector | Method | Detects |
+|---|---|---|
+| Volume spikes | Z-score on per-minute counts | Sudden traffic surges |
+| Error rate spikes | Z-score on per-minute error rate | Service degradation |
+| Latency anomalies | Z-score on avg response time | Slow service periods |
+| Suspicious users | Isolation Forest on user features | Unusual behaviour patterns |
+| Rate limit abuse | Threshold (>50% requests limited) | Potential DoS attempts |
 
 ---
 
-## What's Next
+## Seeded Users
 
-- **C++ Rate Limiter** — native module for ultra-low-latency limiting, callable via JNI or REST
-- **Python Analytics** — traffic anomaly detection service consuming MongoDB logs
-- **Admin UI** — React dashboard for real-time traffic visualization
+| Username | Password | Role | Algorithm | Capacity | Rate |
+|---|---|---|---|---|---|
+| admin | admin123 | ADMIN | Token Bucket | 1000 | 100/s |
+| alice | password123 | USER | Token Bucket | 10 | 5/s |
+| bob | password123 | USER | Leaky Bucket | 8 | 2/s |
+
+---
+
+## Screenshots
+
+> Add your dashboard screenshot here
+
+---
+
+## Author
+
+**Smarta** — [github.com/Smarta001](https://github.com/Smarta001)
