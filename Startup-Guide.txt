@@ -1,0 +1,78 @@
+1>START MONGODB
+	terminal 1 - keep open run first
+	mongod --dbpath C:\data\db
+Wait for: "Waiting for connections on port 27017"
+
+
+2>Start API Gateway
+Terminal 2 — main gateway on port 8080
+	cd C:\gateway-project\api-gateway
+	java -jar target\api-gateway-1.0.0.jar --spring.data.mongodb.uri=mongodb://127.0.0.1:27017/api_gateway
+Wait for: "Started ApiGatewayApplication" + seeded users logged
+
+
+3>Start User Service
+Terminal 3 — port 8081
+	cd C:\gateway-project\api-gateway
+	python dummy_user_service.py
+	
+Wait for: "User Service running on http://localhost:8081"
+
+
+
+4>Start Order Service
+Terminal 4 — port 8082
+	cd C:\gateway-project\api-gateway
+	python dummy_order_service.py
+Wait for: "Order Service running on http://localhost:8082"
+
+
+5>Start Product Service
+Terminal 5 — port 8083
+	cd C:\gateway-project\api-gateway
+	python dummy_product_service.py
+Wait for: "Product Service running on http://localhost:8083"
+
+
+6>Start Python Analytics
+Terminal 6 — port 8000
+	cd C:\gateway-project\python-analytics
+	python src\main.py
+Wait for: "Analytics service started" on port 8000
+
+
+7>Start Admin Dashboard
+Terminal 7 — port 3000
+	cd C:\gateway-project\admin-dashboard
+	npm run dev
+Open browser → http://localhost:3000 → login: admin / admin123
+
+
+
+8>Quick test (any terminal)
+Verify the gateway is working after startup
+	$r = Invoke-WebRequest -Uri "http://localhost:8080/auth/login" -Method 	POST -ContentType "application/json" -Body 	'{"username":"admin","password":"admin123"}' -UseBasicParsing; $token = 	($r.Content | ConvertFrom-Json).token; Write-Host "Token OK: 	$($token.Substring(0,30))..."
+	
+	Invoke-WebRequest -Uri "http://localhost:8080/api/users" -Headers 
+	@{Authorization="Bearer $token"} -UseBasicParsing | Select-Object 	StatusCode
+
+Should return StatusCode 200 — gateway is routing correctly
+
+
+
+All services at a glance
+MongoDB :27017
+Gateway :8080
+Users :8081
+Orders :8082
+Products :8083
+Analytics :8000
+Dashboard :3000
+Start order matters: MongoDB → Gateway → Dummy services → Analytics → Dashboard
+
+
+
+Always start MongoDB first before the gateway
+The gateway JAR is already built — no need to run mvn again unless you change code
+npm install only needs to run once — next time just npm run dev
+Keep all 7 terminals open while using the system — closing any one stops that service

@@ -1,0 +1,22 @@
+# Java
+api-gateway/target/
+*.class
+
+# C++ build
+cpp-rate-limiter/build/
+*.exe
+*.o
+
+# Python
+__pycache__/
+*.pyc
+.env
+
+# Node
+admin-dashboard/node_modules/
+admin-dashboard/dist/
+
+# IDE
+.idea/
+.vscode/
+*.iml
