@@ -16,7 +16,7 @@ function authHeaders(token) {
 }
 
 export async function fetchDashboard(token) {
-  const res = await fetch(`/admin/dashboard`, { headers: authHeaders(token) });
+  const res = await fetch(`${GATEWAY_URL}/admin/dashboard`, { headers: authHeaders(token) });
   if (!res.ok) throw new Error("Failed to fetch dashboard");
   return res.json();
 }
@@ -24,19 +24,19 @@ export async function fetchDashboard(token) {
 export async function fetchLogs(token, { page = 0, size = 50, username } = {}) {
   const params = new URLSearchParams({ page, size });
   if (username) params.set("username", username);
-  const res = await fetch(`/admin/logs?${params}`, { headers: authHeaders(token) });
+  const res = await fetch(`${GATEWAY_URL}/admin/logs?${params}`, { headers: authHeaders(token) });
   if (!res.ok) throw new Error("Failed to fetch logs");
   return res.json();
 }
 
 export async function fetchUsers(token) {
-  const res = await fetch(`/admin/users`, { headers: authHeaders(token) });
+  const res = await fetch(`${GATEWAY_URL}/admin/users`, { headers: authHeaders(token) });
   if (!res.ok) throw new Error("Failed to fetch users");
   return res.json();
 }
 
 export async function updateRateLimit(token, username, { capacity, refillRate, algorithm }) {
-  const res = await fetch(`/admin/users/${username}/rate-limit`, {
+  const res = await fetch(`${GATEWAY_URL}/admin/users/${username}/rate-limit`, {
     method: "PATCH",
     headers: authHeaders(token),
     body: JSON.stringify({ capacity, refillRate, algorithm }),
@@ -46,7 +46,7 @@ export async function updateRateLimit(token, username, { capacity, refillRate, a
 }
 
 export async function fetchRateLimitStatus(token, userId) {
-  const res = await fetch(`/admin/rate-limit/status/${userId}`, {
+  const res = await fetch(`${GATEWAY_URL}/admin/rate-limit/status/${userId}`, {
     headers: authHeaders(token),
   });
   if (!res.ok) throw new Error("Failed to fetch rate limit status");
@@ -54,37 +54,37 @@ export async function fetchRateLimitStatus(token, userId) {
 }
 
 export async function fetchSummary(minutes = 60) {
-  const res = await fetch(`/summary?minutes=${minutes}`);
+  const res = await fetch(`${ANALYTICS_URL}/summary?minutes=${minutes}`);
   if (!res.ok) throw new Error("Analytics unavailable");
   return res.json();
 }
 
 export async function fetchTimeseries(minutes = 60, bucketSeconds = 60) {
-  const res = await fetch(`/timeseries?minutes=${minutes}&bucket_seconds=${bucketSeconds}`);
+  const res = await fetch(`${ANALYTICS_URL}/timeseries?minutes=${minutes}&bucket_seconds=${bucketSeconds}`);
   if (!res.ok) throw new Error("Timeseries unavailable");
   return res.json();
 }
 
 export async function fetchServiceStats(minutes = 60) {
-  const res = await fetch(`/services?minutes=${minutes}`);
+  const res = await fetch(`${ANALYTICS_URL}/services?minutes=${minutes}`);
   if (!res.ok) throw new Error("Service stats unavailable");
   return res.json();
 }
 
 export async function fetchUserStats(minutes = 60, topN = 20) {
-  const res = await fetch(`/users?minutes=${minutes}&top_n=${topN}`);
+  const res = await fetch(`${ANALYTICS_URL}/users?minutes=${minutes}&top_n=${topN}`);
   if (!res.ok) throw new Error("User stats unavailable");
   return res.json();
 }
 
 export async function fetchAnomalies(minutes = 60) {
-  const res = await fetch(`/anomalies?minutes=${minutes}`);
+  const res = await fetch(`${ANALYTICS_URL}/anomalies?minutes=${minutes}`);
   if (!res.ok) throw new Error("Anomaly detection unavailable");
   return res.json();
 }
 
 export async function fetchLatestAnomalies() {
-  const res = await fetch(`/anomalies/latest`);
+  const res = await fetch(`${ANALYTICS_URL}/anomalies/latest`);
   if (!res.ok) throw new Error("Anomaly feed unavailable");
   return res.json();
 }
