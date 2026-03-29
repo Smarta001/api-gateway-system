@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # API Gateway System
 
 A production-grade, polyglot API Gateway built with Java, C++, Python, and React. Handles JWT authentication, per-user rate limiting, request logging, traffic analytics, and ML-based anomaly detection — all visualised in a real-time admin dashboard.
@@ -247,3 +248,6 @@ The Python analytics service runs 5 detectors on every `/anomalies` request:
 ## Author
 
 **Smarta** — [github.com/Smarta001](https://github.com/Smarta001)
+=======
+
+>>>>>>> 70ced1d167cadd7c0d9494a65f3d16b8329699a0
