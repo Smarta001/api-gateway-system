@@ -1,8 +1,8 @@
-const GATEWAY_URL   = "";
-const ANALYTICS_URL = "";
+const GATEWAY_URL  = import.meta.env.VITE_GATEWAY_URL  || "";
+const ANALYTICS_URL = import.meta.env.VITE_ANALYTICS_URL || "";
 
 export async function login(username, password) {
-  const res = await fetch(`/auth/login`, {
+  const res = await fetch(`${GATEWAY_URL}/auth/login`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ username, password }),
