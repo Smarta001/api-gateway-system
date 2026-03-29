@@ -6,8 +6,7 @@ A production-grade, polyglot API Gateway built with Java, C++, Python, and React
 ---
 
 ## Live Demo
-
-> Dashboard: [your-vercel-url.vercel.app](https://your-vercel-url.vercel.app)  
+ 
 > Login: `admin` / `admin123`
 
 ---
@@ -241,7 +240,8 @@ The Python analytics service runs 5 detectors on every `/anomalies` request:
 
 ## Screenshots
 
-> Add your dashboard screenshot here
+
+<img width="1891" height="905" alt="image" src="https://github.com/user-attachments/assets/91d11334-49ab-4e0d-a081-512a16d9bfb3" />
 
 ---
 
