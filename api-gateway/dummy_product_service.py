@@ -1,6 +1,7 @@
 """Dummy Product Service - port 8083"""
 from http.server import HTTPServer, BaseHTTPRequestHandler
 import json, time
+import os
 
 PRODUCTS = [
     {"id": "p1", "name": "Laptop Pro",          "category": "Electronics", "price": 1299.99, "stock": 42},
@@ -53,6 +54,7 @@ class Handler(BaseHTTPRequestHandler):
         self.send_json({"id": pid, "deleted": True})
 
 if __name__ == "__main__":
-    server = HTTPServer(("0.0.0.0", 8083), Handler)
+    port = int(os.environ.get("PORT", 8082))
+    server = HTTPServer(("0.0.0.0", port), Handler)
     print("✅ Product Service running on http://localhost:8083")
     server.serve_forever()

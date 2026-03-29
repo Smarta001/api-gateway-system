@@ -1,6 +1,7 @@
 """Dummy User Service - port 8081"""
 from http.server import HTTPServer, BaseHTTPRequestHandler
 import json, time
+import os
 
 USERS = [
     {"id": "u1", "username": "alice", "email": "alice@test.com"},
@@ -50,6 +51,7 @@ class Handler(BaseHTTPRequestHandler):
         self.send_json({"id": uid, "deleted": True})
 
 if __name__ == "__main__":
-    server = HTTPServer(("0.0.0.0", 8081), Handler)
+    port = int(os.environ.get("PORT", 8081))
+    server = HTTPServer(("0.0.0.0", port), Handler)
     print("✅ User Service running on http://localhost:8081")
     server.serve_forever()

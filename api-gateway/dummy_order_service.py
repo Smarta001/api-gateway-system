@@ -1,6 +1,7 @@
 """Dummy Order Service - port 8082"""
 from http.server import HTTPServer, BaseHTTPRequestHandler
 import json, time
+import os
 
 ORDERS = [
     {"id": "o1", "userId": "u1", "product": "Laptop",     "amount": 1200.00, "status": "DELIVERED"},
@@ -50,6 +51,7 @@ class Handler(BaseHTTPRequestHandler):
         self.send_json({"id": oid, "deleted": True})
 
 if __name__ == "__main__":
-    server = HTTPServer(("0.0.0.0", 8082), Handler)
+    port = int(os.environ.get("PORT", 8083))
+    server = HTTPServer(("0.0.0.0", port), Handler)
     print("✅ Order Service running on http://localhost:8082")
     server.serve_forever()
